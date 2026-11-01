@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>J.A.R.V.I.S. Neural OS</title>
+    <meta name="description" content="Futuristic holographic voice assistant for browser and system control with real-time audio-reactive arc geometry." />
+    <meta property="og:title" content="J.A.R.V.I.S. Neural OS" />
+    <meta property="og:description" content="Futuristic holographic voice assistant for browser and system control with real-time audio-reactive arc geometry." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      (function () {
+        try {
+          var baseFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : undefined;
+          Object.defineProperty(window, 'fetch', {
+            configurable: true,
+            enumerable: true,
+            get: function () {
+              return baseFetch;
+            },
+            set: function (nextFetch) {
+              if (typeof nextFetch === 'function') {
+                baseFetch = nextFetch;
+              }
+            }
+          });
+          if (typeof Window !== 'undefined' && Window.prototype) {
+            try {
+              Object.defineProperty(Window.prototype, 'fetch', {
+                configurable: true,
+                enumerable: true,
+                get: function () {
+                  return baseFetch;
+                },
+                set: function (nextFetch) {
+                  if (typeof nextFetch === 'function') {
+                    baseFetch = nextFetch;
+                  }
+                }
+              });
+            } catch (_) {}
+          }
+        } catch (_) {}
+
+        window.addEventListener(
+          'error',
+          function (e) {
+            var msg = e && e.message ? String(e.message) : '';
+            var file = e && e.filename ? String(e.filename) : '';
+            if (
+              msg.indexOf('Cannot set property fetch') !== -1 ||
+              msg.indexOf('fetch of #<Window>') !== -1 ||
+              file.indexOf('chrome-extension://') === 0
+            ) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+            }
+          },
+          true
+        );
+
+        window.addEventListener(
+          'unhandledrejection',
+          function (e) {
+            var reason = e && e.reason ? String(e.reason.message || e.reason) : '';
+            if (
+              reason.indexOf('Cannot set property fetch') !== -1 ||
+              reason.indexOf('fetch of #<Window>') !== -1 ||
+              reason.indexOf('chrome-extension://') !== -1
+            ) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+            }
+          },
+          true
+        );
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  </head>
+  <body class="bg-[#07090E] text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200 overflow-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

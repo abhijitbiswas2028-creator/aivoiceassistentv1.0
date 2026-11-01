@@ -1,0 +1,12 @@
+{
+  "name": "J.A.R.V.I.S. Neural OS",
+  "description": "Futuristic holographic voice assistant for browser and system control with real-time audio-reactive arc geometry.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera",
+    "display-capture"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
