@@ -9,7 +9,7 @@ import {
   buildDesktopAppCommand,
   detectMultilingualLanguageHint,
   downsampleFloat32Buffer,
-} from './jarvisEngine';
+} from './jarvisEngine.ts';
 
 test('computeGatedAudioEnvelope gates out quiet ambient room noise and bounds loud input', () => {
   const quietRoom = new Uint8Array(32).fill(4);

@@ -137,59 +137,69 @@ ${dialogueContext}
 - TEXT STYLE: Express the memories as clean, concise, third-person declarative summaries (e.g., 'The user is building a startup named Jarvis.', 'The user loves playing GTA 6.', 'The user enjoys technical and fast-paced styling explanations.'). Do not include conversational filler, quotes, or timestamps.
 - ID: For ADD, leave blank. For UPDATE or REMOVE, provide the exact 'id' from the "Current user memories" list.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            transactions: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  action: {
-                    type: Type.STRING,
-                    description: "ADD, UPDATE, or REMOVE transaction.",
-                    enum: ["ADD", "UPDATE", "REMOVE"],
-                  },
-                  id: {
-                    type: Type.STRING,
-                    description:
-                      "Specific ID of the existing memory being modified or deleted (leave blank/null for ADD).",
-                  },
-                  category: {
-                    type: Type.STRING,
-                    description: "The Memory category classification.",
-                    enum: [
-                      "identity",
-                      "preference",
-                      "goal",
-                      "project",
-                      "relationship",
-                      "emotional",
-                      "behavior",
-                    ],
-                  },
-                  text: {
-                    type: Type.STRING,
-                    description:
-                      "The memory summarized as a concise declarative statement in third-person.",
+    // Try gemini-3.8-flash first, then gemini-2.0-flash fallback
+    let responseText = "{}";
+    const candidateModels = ["gemini-3.8-flash", "gemini-2.0-flash"];
+
+    for (const modelCandidate of candidateModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelCandidate,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                transactions: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      action: {
+                        type: Type.STRING,
+                        description: "ADD, UPDATE, or REMOVE transaction.",
+                        enum: ["ADD", "UPDATE", "REMOVE"],
+                      },
+                      id: {
+                        type: Type.STRING,
+                        description:
+                          "Specific ID of the existing memory being modified or deleted (leave blank/null for ADD).",
+                      },
+                      category: {
+                        type: Type.STRING,
+                        description: "The Memory category classification.",
+                        enum: [
+                          "identity",
+                          "preference",
+                          "goal",
+                          "project",
+                          "relationship",
+                          "emotional",
+                          "behavior",
+                        ],
+                      },
+                      text: {
+                        type: Type.STRING,
+                        description:
+                          "The memory summarized as a concise declarative statement in third-person.",
+                      },
+                    },
+                    required: ["action", "category", "text"],
                   },
                 },
-                required: ["action", "category", "text"],
               },
+              required: ["transactions"],
             },
           },
-          required: ["transactions"],
-        },
-      },
-    });
-
-    const resultText = response.text?.trim() || "{}";
-    const resultObj = JSON.parse(resultText);
+        });
+        responseText = response.text?.trim() || "{}";
+        break;
+      } catch (genErr) {
+        console.warn(`[Memory] Generation attempt with ${modelCandidate} failed:`, genErr);
+      }
+    }
+    const resultObj = JSON.parse(responseText);
     const transactions: MemoryTransaction[] = resultObj.transactions || [];
 
     if (transactions.length === 0) {

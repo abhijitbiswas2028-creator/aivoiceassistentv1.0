@@ -127,13 +127,9 @@ export const JarvisCoreCanvas: React.FC<JarvisCoreCanvasProps> = ({
         activeAnalyser.getByteFrequencyData(freqBins);
         bands = computeGatedAudioEnvelope(freqBins, smoothedEnvelopeRef.current, 0.05);
         smoothedEnvelopeRef.current = bands.gatedEnergy;
-      } else if (curState === 'speaking') {
-        const simLevel =
-          simulatedVoiceEnergyRef?.current ??
-          0.38 +
-            Math.abs(Math.sin(elapsed * 6.8)) * 0.32 +
-            Math.abs(Math.cos(elapsed * 11.2)) * 0.22;
-        const target = Math.min(0.92, Math.max(0.18, simLevel));
+      } else if (curState === 'speaking' && simulatedVoiceEnergyRef?.current) {
+        // A speaking pulse is only permitted when an actual playback analyser or audio source reports energy.
+        const target = Math.min(0.92, Math.max(0, simulatedVoiceEnergyRef.current));
         smoothedEnvelopeRef.current += (target - smoothedEnvelopeRef.current) * 0.26;
         bands = {
           rawRms: smoothedEnvelopeRef.current,
@@ -141,18 +137,6 @@ export const JarvisCoreCanvas: React.FC<JarvisCoreCanvasProps> = ({
           lowBand: smoothedEnvelopeRef.current * 0.92,
           midBand: smoothedEnvelopeRef.current,
           highBand: smoothedEnvelopeRef.current * 0.75,
-        };
-      } else if (curState === 'listening') {
-        const simMic =
-          simulatedVoiceEnergyRef?.current ??
-          0.14 + Math.abs(Math.sin(elapsed * 3.6)) * 0.2;
-        smoothedEnvelopeRef.current += (simMic - smoothedEnvelopeRef.current) * 0.2;
-        bands = {
-          rawRms: smoothedEnvelopeRef.current,
-          gatedEnergy: smoothedEnvelopeRef.current,
-          lowBand: smoothedEnvelopeRef.current * 0.88,
-          midBand: smoothedEnvelopeRef.current * 0.96,
-          highBand: smoothedEnvelopeRef.current * 0.65,
         };
       } else {
         smoothedEnvelopeRef.current *= 0.84;
@@ -591,7 +575,7 @@ export const JarvisCoreCanvas: React.FC<JarvisCoreCanvasProps> = ({
 
       ctx.restore();
 
-      const frameDelay = curState === 'idle' || isReduced ? 40 : 33;
+      const frameDelay = document.hidden ? 800 : curState === 'idle' || isReduced ? 40 : 33;
       timerId = window.setTimeout(() => {
         render(performance.now());
       }, frameDelay);
